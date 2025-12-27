@@ -16,10 +16,9 @@
 }
 
 html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;   /* 🔥 QUAN TRỌNG */
 }
 
 a { text-decoration: none; color: inherit; transition: 0.3s; }
@@ -126,31 +125,57 @@ nav ul li a:hover { color: var(--primary-orange); }
 .trending-games h3 i { color: red; }
 
 .game-stat-item {
-    display: flex; align-items: center;
-    background: white; padding: 15px; border-radius: 15px;
+    display: flex; align-items: center; gap: 15px;
+    background: white;
+    padding: 15px;
     margin-bottom: 15px;
+    border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: 0.3s; border: 1px solid transparent;
+    transition: 0.3s; 
+    border: 1px solid transparent;
+    cursor: default;
 }
+
 .game-stat-item:hover {
-    transform: translateX(10px); /* Di chuyển nhẹ sang phải khi hover */
     border-color: var(--primary-orange);
-    box-shadow: 0 8px 20px rgba(255, 107, 0, 0.1);
+    transform: translateX(10px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
 .gs-icon {
-    width: 50px; height: 50px; border-radius: 12px;
+    width: 50px; height: 50px;
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 1.5rem; margin-right: 15px;
+    font-size: 24px; color: white;
+    flex-shrink: 0;
 }
 /* Tận dụng lại màu gradient cũ */
-.g1 { background: linear-gradient(45deg, #ff9a9e, #fad0c4); }
-.g2 { background: linear-gradient(45deg, #a18cd1, #fbc2eb); }
-.g3 { background: linear-gradient(45deg, #84fab0, #8fd3f4); }
+.g1 { background: linear-gradient(135deg, #ff9966, #ff5e62); box-shadow: 0 4px 10px rgba(255, 94, 98, 0.4); }
+.g2 { background: linear-gradient(135deg, #56ab2f, #a8e063); box-shadow: 0 4px 10px rgba(86, 171, 47, 0.4); }
+.g3 { background: linear-gradient(135deg, #4568dc, #b06ab3); box-shadow: 0 4px 10px rgba(176, 106, 179, 0.4); }
 
-.gs-info h4 { margin: 0; color: var(--text-dark); font-size: 1.1rem; }
-.gs-info .downloads {
-    margin: 5px 0 0 0; color: var(--primary-orange); font-size: 0.9rem; font-weight: 600;
+.gs-info h4 { margin: 0 0 5px 0; color: #333; font-size: 1rem; font-weight: 700; }
+.downloads { margin: 0; font-size: 0.85rem; color: #888; display: flex; align-items: center; gap: 5px; }
+.gs-icon-img {
+    width: 55px;
+    height: 55px;
+    border-radius: 12px; /* Bo tròn góc ảnh */
+    object-fit: cover; /* Đảm bảo ảnh không bị méo */
+    flex-shrink: 0; /* Không bị co lại nếu tên game quá dài */
+    border: 1px solid #f0f0f0; /* Viền nhẹ cho đẹp */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+/* Trạng thái đang chọn của Game trong list */
+.game-stat-item.active {
+    border-color: var(--primary-orange);
+    background-color: #fff8f0; /* Nền cam rất nhạt */
+    transform: translateX(15px) scale(1.05); /* Nhảy ra xa hơn chút */
+    box-shadow: 0 10px 25px rgba(255,107,0,0.2);
+}
+
+/* Đảm bảo ảnh trong điện thoại hiển thị đẹp */
+#hero-phone-img {
+    background: #000; /* Nền đen lúc ảnh đang load/fade */
 }
 
 /* ============ CỘT PHẢI (Điện thoại) ============ */
@@ -204,14 +229,202 @@ nav ul li a:hover { color: var(--primary-orange); }
     box-shadow: 0 30px 60px rgba(0,0,0,0.3); /* Đổ bóng tạo chiều sâu */
     position: relative;
 }
-
-/* Màn hình bên trong */
 .phone-screen {
-    width: 100%; height: 100%;
-    background: #fff;
-    border-radius: 35px;
-    overflow: hidden; /* Cắt ảnh thừa */
+    width: 100%;
+    height: 100%;
+    
+    background: #000;
     position: relative;
+    
+    /* QUAN TRỌNG 1: Cắt mọi thứ thừa ra ngoài (ảnh nền, nội dung) */
+    overflow: hidden; 
+    
+    /* QUAN TRỌNG 2: Bo góc màn hình để khớp với khung điện thoại */
+    border-radius: 40px; 
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    align-items: center;
+    
+    padding-top: 80px; 
+    box-sizing: border-box; 
+}
+
+#p-bg-blur {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: blur(20px) brightness(0.7); /* Làm mờ mạnh và tối đi chút */
+    transform: scale(1.2); /* Phóng to để che viền mờ */
+    z-index: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.phone-glass-card {
+    position: relative;
+    z-index: 10;
+    width: 85%;
+    /* Bỏ padding-top vì icon đã nổi lên */
+    padding: 0 20px 25px 20px; 
+    
+    background: rgba(255, 255, 255, 0.2); 
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    
+    /* THAY ĐỔI 3: Xóa bỏ margin-top cũ vì đã dùng padding-top */
+    /* margin-top: 30px; <-- XÓA DÒNG NÀY */
+    
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.phone-glass-card.fade-out {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+}
+
+
+
+/* Hiệu ứng khi đang chuyển đổi (ẩn đi) */
+.phone-app-content.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.phone-bg-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; 
+    height: 100%; /* Bắt buộc */
+    object-fit: cover;
+    z-index: 0;
+    filter: blur(4px) brightness(0.8);
+    transform: scale(1.1);
+}
+/* Lớp phủ đen mờ nhẹ */
+.phone-bg-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    z-index: 1;
+}
+
+#p-icon {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 17px;
+}
+
+#p-developer {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+}
+.p-meta-text {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 2px;
+}
+
+.p-rating {
+    color: #ffcc00; /* Vàng nghệ */
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+#p-score { color: #fff; font-weight: bold; margin-right: 5px; }
+
+#p-name {
+    color: #fff; /* Chữ trắng cho nổi trên nền tối */
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 5px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.btn-install-gradient {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-radius: 50px; /* Bo tròn viên thuốc */
+    
+    /* Gradient Cam -> Hồng */
+    background: linear-gradient(90deg, #ff8c00 0%, #ff0055 100%);
+    
+    color: white;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+    cursor: default;
+    transition: 0.3s;
+}
+
+.p-rating {
+    color: #ff9500; /* Màu cam sao */
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.p-icon-container {
+    width: 90px;
+    height: 90px;
+    /* Kéo icon nổi lên trên thẻ kính */
+    margin-top: -45px; 
+    margin-bottom: 15px;
+    border-radius: 22px;
+    padding: 4px;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+}
+
+#p-icon {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 18px;
+    display: block; /* Tránh lỗi khoảng trắng thừa của thẻ img */
+}
+#p-score {
+    font-weight: bold;
+    color: #555;
+    margin-right: 5px;
+    font-size: 1rem;
+}
+
+/* 3. Nút bấm */
+
+
+/* 1. Ảnh Icon */
+.phone-icon-wrapper {
+    width: 90px; height: 90px;
+    margin-bottom: 15px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    background: white;
+}
+
+/* Container chính bên trong điện thoại */
+.phone-app-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease;
+    opacity: 1;
 }
 .phone-screen img {
     width: 100%; height: 100%; object-fit: cover;
@@ -222,7 +435,7 @@ nav ul li a:hover { color: var(--primary-orange); }
     position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
     width: 130px; height: 25px; background: #111;
     border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
-    z-index: 10;
+    z-index: 999;
 }
 
 .hero-content h1 { font-size: 3.5rem; margin-bottom: 20px; color: var(--text-dark); }
@@ -364,17 +577,20 @@ footer {
 
 /* 2. Header của Dashboard */
 .dash-header {
-    height: 70px;
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    border-bottom: 1px solid #ddd;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    /* Giữ header cố định nếu muốn, hoặc để trôi theo trang */
-    position: relative; 
-    z-index: 10;
+  height: 70px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+  position: fixed;     /* ✅ SỬA Ở ĐÂY */
+  top: 0;              /* ✅ BẮT BUỘC */
+  left: 0;
+  right: 0;
+  z-index: 1000;       /* tăng lên cho an toàn */
 }
 
 .user-info { display: flex; align-items: center; gap: 20px; }
@@ -386,10 +602,11 @@ footer {
 .btn-logout:hover { background: #555; }
 
 .dash-container {
-    display: flex; /* Xếp sidebar và main nằm ngang */
-    width: 100%;
-    /* Chiều cao tối thiểu = Toàn màn hình trừ đi Header (100vh - 70px) */
-    min-height: calc(100vh - 70px);
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 70px);   /* 🔥 ĐỔI min-height → height */
+  margin-top: 70px;             /* 🔥 BÙ HEADER */
+   overflow-y: auto;
 }
 
 .sidebar {
@@ -809,6 +1026,286 @@ footer {
     font-size: 11px; white-space: nowrap; display: none;
 }
 .chart-bar:hover .chart-tooltip { display: block; }
+
+.order-table {
+    width: 100%;
+    border-collapse: separate; /* Để bo góc được */
+    border-spacing: 0;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 1. Header của bảng: Màu Cam chủ đạo */
+.order-table th {
+    background-color: var(--primary-orange);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 15px 10px;
+    border-bottom: 2px solid #e65100;
+    white-space: nowrap; /* Không cho tiêu đề xuống dòng */
+    text-align: left; /* Mặc định căn trái cho đẹp */
+}
+
+.order-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    background: white;
+    vertical-align: top; /* Quan trọng: Căn nội dung lên trên cùng */
+    transition: background 0.2s;
+}
+
+.order-table tr:hover td {
+    background-color: #fffaf5; /* Màu cam siêu nhạt khi hover dòng */
+}
+
+.order-table tr:last-child td { border-bottom: none; }
+/* 2. Hiệu ứng khi di chuột vào dòng: Sáng màu cam nhạt */
+.order-table tbody tr:hover td {
+    background-color: #fff8f0; /* Màu kem cam rất nhạt */
+}
+
+/* --- CSS CHO NÚT MỞ LINK (CỘT NOTE) --- */
+/* 1. CHẾ ĐỘ NHẬP LIỆU (TEXTAREA) */
+.note-textarea {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #333;
+    background: transparent;
+    resize: none;
+    overflow: hidden;
+    display: block; /* Mặc định hiện */
+}
+
+.note-textarea:focus {
+    border: 1px solid var(--primary-orange);
+    background: white;
+    outline: none;
+}
+.note-textarea.hidden-input {
+    display: none;
+}
+.note-cell-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 38px;
+}
+
+/* 2. CHẾ ĐỘ HIỂN THỊ LINK (BUTTON MODE) */
+.link-display-mode {
+    display: none; /* Mặc định ẩn, chỉ hiện khi có link */
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    height: 38px;
+}
+
+.link-display-mode.visible {
+    display: flex;
+}
+
+.btn-access-link:hover {
+    background-color: #1976d2;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Nút sửa link (Icon bút chì) */
+.btn-edit-link {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #ddd;
+    color: #666;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-edit-link:hover {
+    background: #fce4ec; /* Hồng nhạt */
+    color: var(--primary-orange);
+    border-color: var(--primary-orange);
+}
+.btn-access-link {
+    flex: 1; /* Chiếm hết chiều rộng */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #e3f2fd; /* Xanh nhạt */
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    height: 100%;
+    border-radius: 6px;
+    border: 1px solid #bbdefb;
+    transition: 0.2s;
+}
+.btn-open-link {
+    display: none; /* Mặc định ẩn */
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: #e3f2fd;
+    color: #2980b9;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: 0.2s;
+    flex-shrink: 0; /* Không bị co lại */
+    border: 1px solid #bbdefb;
+}
+
+.btn-open-link:hover {
+    background-color: #2980b9;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Class để hiện nút khi phát hiện link */
+.btn-open-link.visible {
+    display: flex;
+}
+
+/* Nút Discord */
+.btn-discord {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background-color: #7289da; /* Màu chuẩn Discord */
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+}
+
+.btn-discord:hover {
+    background-color: #5b6eae;
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 3px 8px rgba(114, 137, 218, 0.4);
+}
+
+.btn-discord:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 3. Input & Select trong bảng */
+.table-input, .table-select, .table-textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid transparent; /* Bình thường không hiện viền */
+    background: transparent;
+    border-radius: 6px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.table-textarea {
+    resize: none; /* Tắt kéo thủ công, dùng auto-resize JS */
+    min-height: 38px;
+    line-height: 1.5;
+    overflow: hidden;
+}
+
+/* Khi bấm vào sửa thì viền cam hiện lên */
+.table-input:focus, .table-select:focus {
+    border: 1px solid var(--primary-orange);
+    background: white;
+    box-shadow: 0 0 5px rgba(255, 107, 0, 0.2);
+}
+
+.table-input:hover, .table-select:hover, .table-textarea:hover {
+    background-color: #f9f9f9;
+    border-color: #eee;
+}
+
+.table-input:focus, .table-select:focus, .table-textarea:focus {
+    background-color: white;
+    border: 1px solid var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1); /* Hiệu ứng Glow cam */
+    outline: none;
+}
+
+.table-select:focus {
+    background-color: white !important;
+    color: #333 !important;
+    text-align: left;
+}
+
+.table-select.prio-low {
+    background-color: #e8f5e9; color: #27ae60; font-weight: 600; border-radius: 20px; text-align: center;
+}
+.table-select.prio-medium {
+    background-color: #fff3e0; color: #e67e22; font-weight: 600; border-radius: 20px; text-align: center;
+}
+.table-select.prio-high {
+    background-color: #ffebee; color: #c0392b; font-weight: 600; border-radius: 20px; text-align: center;
+}
+
+.table-checkbox {
+    width: 18px; height: 18px;
+    margin-top: 8px; /* Căn chỉnh cho thẳng hàng với text */
+    accent-color: var(--primary-orange);
+    cursor: pointer;
+}
+
+.order-table th.text-center, 
+.order-table td.text-center { text-align: center !important; }
+
+/* 4. Checkbox màu cam */
+.table-checkbox {
+    width: 18px; height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-orange); /* Màu check cũng là cam */
+}
+
+/* 5. Nút xóa dòng (Màu xám -> Đỏ khi hover) */
+.btn-delete-row {
+    margin-top: 5px;
+    color: #ccc;
+    background: white;
+    border: 1px solid #eee;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+}
+.btn-delete-row:hover {
+    background: #ffebee; color: #e74c3c; border-color: #e74c3c;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 6. Màu Priority (Giữ nguyên để phân biệt mức độ) */
+.prio-low { color: #27ae60; background: #e8f5e9; font-weight: 600; border-radius: 4px; }
+.prio-medium { color: #d35400; background: #fce4ec; font-weight: 600; border-radius: 4px; } /* Cam đậm */
+.prio-high { color: #c0392b; background: #fadbd8; font-weight: 600; border-radius: 4px; }
+
+
+
+/* Khi bấm vào viết: Viền màu Cam */
+.table-textarea:focus {
+    border: 1px solid var(--primary-orange);
+    background: white;
+    box-shadow: 0 0 5px rgba(255, 107, 0, 0.2);
+}
 
 /* Hiệu ứng Fade In cho chuyên nghiệp */
 .fade-in {

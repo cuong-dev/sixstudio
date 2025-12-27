@@ -1,13 +1,16 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxyu-zaa5aWHy0aZ1DyGYkhhjCG6MNEYDfU2SD7TyG78E3CfkqlPlNhxTq-bQZOTQJ/exec";
 const REVENUE_API_URL = "https://script.google.com/macros/s/AKfycbwdnGRxuXhnvx3BrGJHOdyGmIpNIg1GKKb0irBYvTUmlneoohFHWrwt4bRwo6imDvSw9w/exec";
+const ORDER_API_URL = "https://script.google.com/macros/s/AKfycbxrHRHncrv44CpFK4vgPdovosm4mPHaBcWO9sY9VigL7X6RmAMvSklKS5ITalSV8kAtYQ/exec";
 const landingPage = document.getElementById('landing-page');
 const dashboardPage = document.getElementById('dashboard-page');
 const loginModal = document.getElementById('login-modal');
 const errorMsg = document.getElementById('error-msg');
 let isYearInitialized = false;
 let currentRevenueView = 'overview';
+const TEAM_MEMBERS = ["Lương", "Cương", "Hải", "Admin", "Dev 1"];
 // Biến lưu Cache dữ liệu ngày để đỡ phải gọi API nhiều lần khi đổi ngày lọc
 let cachedDailyData = [];
+let cachedOrderData = [];
 async function loadGamesFromSheet() {
     const container = document.getElementById('game-gallery-container');
     
@@ -165,6 +168,15 @@ function switchTab(tabId) {
             loadRevenueData();
         } else {
             console.error("Lỗi: Không tìm thấy hàm loadRevenueData!");
+        }
+    }
+
+    if (tabId === 'tab-order') {
+        console.log("=> Đang tải bảng Order...");
+        if (typeof loadOrderTable === 'function') {
+            loadOrderTable();
+        } else {
+            console.error("Chưa có hàm loadOrderTable!");
         }
     }
 }
@@ -403,10 +415,10 @@ function toggleDailyModal() {
 
 async function loadDailyRevenue() {
     const tbody = document.getElementById('daily-table-body');
-    const totalProfitEl = document.getElementById('daily-total-profit'); // Element hiển thị số to
+    const totalProfitEl = document.getElementById('daily-total-profit'); 
     const targetDate = getYesterdayString(); 
 
-    // Reset trạng thái loading
+    // Reset giao diện
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 50px;"><i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary-orange);"></i><br>Đang tải dữ liệu...</td></tr>`;
     totalProfitEl.innerText = "---";
 
@@ -422,7 +434,7 @@ async function loadDailyRevenue() {
         }
 
         // Lọc dữ liệu ngày hôm qua
-        const filteredData = cachedDailyData.filter(item => item.date === targetDate);
+        let filteredData = cachedDailyData.filter(item => item.date === targetDate);
 
         tbody.innerHTML = '';
         
@@ -437,29 +449,41 @@ async function loadDailyRevenue() {
             totalProfitEl.innerText = "$0";
             totalProfitEl.style.color = "#999";
         } else {
-            let totalRevenue = 0;
             let totalProfit = 0;
             
-            // --- VÒNG 1: TÍNH TỔNG TRƯỚC ĐỂ HIỆN LÊN HEADER ---
+            // --- BƯỚC 1: TÍNH TỔNG LÃI TOÀN BỘ (Để hiện lên Header) ---
             filteredData.forEach(row => {
-                totalRevenue += (row.revenue || 0);
                 totalProfit += (row.profit || 0);
             });
 
-            // Hiển thị ngay Tổng Lãi lên Header (Số to đùng)
+            // Hiển thị số to đùng
             totalProfitEl.innerText = `$${totalProfit.toLocaleString()}`;
             totalProfitEl.style.color = totalProfit >= 0 ? '#27ae60' : '#e74c3c';
 
-            // --- VÒNG 2: VẼ BẢNG CHI TIẾT ---
-            filteredData.forEach(row => {
+            // --- BƯỚC 2: SẮP XẾP TỪ CAO XUỐNG THẤP (SORTING) ---
+            // Logic: Lấy (b - a) để số lớn lên đầu
+            filteredData.sort((a, b) => {
+                const profitA = a.profit || 0;
+                const profitB = b.profit || 0;
+                return profitB - profitA;
+            });
+
+            // --- BƯỚC 3: VẼ BẢNG (Lúc này dữ liệu đã được sắp xếp) ---
+            filteredData.forEach((row, index) => {
                 const profit = row.profit || 0;
                 const revenue = row.revenue || 0;
-                const cost = revenue - profit; // Tự tính Cost để hiển thị cho đầy đủ
+                const cost = revenue - profit; 
+
+                // Thêm icon Top 1, 2, 3 cho sinh động
+                let rankIcon = "";
+                if (index === 0) rankIcon = "🥇";
+                else if (index === 1) rankIcon = "🥈";
+                else if (index === 2) rankIcon = "🥉";
 
                 const tr = `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 15px 20px; font-weight: 600; color: #333;">
-                            ${row.game}
+                            ${rankIcon} ${row.game}
                         </td>
                         <td style="text-align: right; color: #555;">
                             $${revenue.toLocaleString()}
@@ -553,6 +577,438 @@ function handleCredentialResponse(response) {
     }
 }
 
+// Dữ liệu mẫu ban đầu
+let orderData = [
+    { done: true, priority: 'Low', req: 'Lương', exec: 'Hải', dead: '2025-12-22', content: 'Map Assets', note: '' },
+    { done: true, priority: 'Medium', req: 'Cương', exec: 'Hải', dead: '2025-12-24', content: 'Asset Map, Worker', note: '' },
+    { done: false, priority: 'High', req: 'Admin', exec: 'Lương', dead: '2025-12-30', content: 'UI/UX Game mới', note: 'Gấp' }
+];
+
+// 1. Hàm load bảng Order (Gọi khi bấm tab Order)
+function loadOrderTable() {
+    const tbody = document.getElementById('order-table-body');
+    tbody.innerHTML = '';
+
+    orderData.forEach((row, index) => {
+        createOrderRowHTML(tbody, row, index);
+    });
+}
+
+// 2. Hàm tạo HTML cho 1 dòng
+function createOrderRowHTML(tbody, data = {}, index = null) {
+    const safeData = {
+        done: data.done || false,
+        sheetName: data.sheetName || 'Mới',
+        priority: data.priority || 'Low',
+        req: data.req || TEAM_MEMBERS[0],
+        exec: data.exec || TEAM_MEMBERS[0],
+        dead: data.dead || '',
+        content: data.content || '',
+        note: data.note || ''
+    };
+
+    const optionsMember = TEAM_MEMBERS.map(m => `<option value="${m}">${m}</option>`).join('');
+    
+    let prioClass = 'prio-low';
+    if(safeData.priority === 'Medium') prioClass = 'prio-medium';
+    if(safeData.priority === 'High') prioClass = 'prio-high';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="text-center" style="width: 50px;">
+            <input type="checkbox" class="table-checkbox" ${safeData.done ? 'checked' : ''}>
+        </td>
+        <td style="font-size: 0.85rem; color: #888; padding-top: 15px; width: 100px;">
+            ${safeData.sheetName}
+        </td>
+        <td style="width: 130px;">
+            <select class="table-select ${prioClass}" onchange="changePrioColor(this)">
+                <option value="Low" ${safeData.priority === 'Low' ? 'selected' : ''}>Low</option>
+                <option value="Medium" ${safeData.priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                <option value="High" ${safeData.priority === 'High' ? 'selected' : ''}>High</option>
+            </select>
+        </td>
+        <td style="width: 140px;">
+            <select class="table-select" style="font-weight: 500;">
+                ${optionsMember.replace(`"${safeData.req}"`, `"${safeData.req}" selected`)}
+            </select>
+        </td>
+        <td style="width: 140px;">
+            <select class="table-select" style="font-weight: 500;">
+                ${optionsMember.replace(`"${safeData.exec}"`, `"${safeData.exec}" selected`)}
+            </select>
+        </td>
+        <td style="width: 150px;">
+            <input type="date" class="table-input" value="${safeData.dead}" style="color: #666;">
+        </td>
+        <td>
+            <textarea class="table-textarea" placeholder="Nhập nội dung..." oninput="autoResize(this)" rows="1">${safeData.content}</textarea>
+        </td>
+        
+        <td style="width: 220px;">
+            <div class="note-cell-wrapper">
+                <div class="link-display-mode">
+                    <a href="#" target="_blank" class="btn-access-link">
+                        <i class="fas fa-link"></i> Mở Link
+                    </a>
+                    <button class="btn-edit-link" title="Sửa link" onclick="enableEditLink(this)">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                </div>
+
+                <textarea class="note-textarea" 
+                          placeholder="Link/Ghi chú..." 
+                          oninput="autoResize(this)" 
+                          onblur="checkLinkDisplay(this)"
+                          rows="1">${safeData.note}</textarea>
+            </div>
+        </td>
+        
+        <td class="text-center" style="width: 60px;">
+            <button class="btn-discord" title="Gửi thông báo Discord" onclick="pingDiscord(this)">
+                <i class="fab fa-discord"></i>
+            </button>
+        </td>
+
+        <td class="text-center" style="width: 60px;">
+            <button class="btn-delete-row" onclick="deleteOrderRow(this)"><i class="fas fa-trash-alt"></i></button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+
+    // Kích hoạt logic kiểm tra link ngay khi load
+    tr.querySelectorAll('textarea').forEach(el => autoResize(el));
+    tr.querySelectorAll('.note-textarea').forEach(el => checkLinkDisplay(el));
+}
+
+function checkLinkDisplay(textarea) {
+    const val = textarea.value.trim();
+    const wrapper = textarea.parentElement;
+    const displayMode = wrapper.querySelector('.link-display-mode');
+    const linkBtn = wrapper.querySelector('.btn-access-link');
+    
+    // Nếu là Link (bắt đầu bằng http)
+    if (val.toLowerCase().startsWith('http')) {
+        // Cập nhật href cho nút
+        linkBtn.href = val;
+        
+        // Hiện chế độ Button
+        displayMode.classList.add('visible');
+        
+        // Ẩn textarea đi
+        textarea.classList.add('hidden-input');
+    } else {
+        // Nếu không phải link (text thường hoặc rỗng) -> Hiện textarea bình thường
+        displayMode.classList.remove('visible');
+        textarea.classList.remove('hidden-input');
+    }
+}
+
+// 2. Hàm khi bấm nút Bút chì (Sửa link)
+function enableEditLink(btn) {
+    const wrapper = btn.parentElement.parentElement;
+    const textarea = wrapper.querySelector('.note-textarea');
+    const displayMode = wrapper.querySelector('.link-display-mode');
+
+    // Ẩn chế độ Button
+    displayMode.classList.remove('visible');
+    
+    // Hiện textarea và focus vào nó
+    textarea.classList.remove('hidden-input');
+    textarea.focus();
+}
+
+function checkLinkInput(textarea) {
+    const val = textarea.value.trim();
+    // Tìm nút Link nằm ngay cạnh textarea
+    const linkBtn = textarea.parentElement.querySelector('.btn-open-link');
+    
+    if (!linkBtn) return;
+
+    // Kiểm tra xem có bắt đầu bằng http:// hoặc https:// không
+    if (val.startsWith('http://') || val.startsWith('https://')) {
+        linkBtn.href = val; // Gán link vào nút
+        linkBtn.classList.add('visible'); // Hiện nút
+    } else {
+        linkBtn.classList.remove('visible'); // Ẩn nút
+    }
+}
+
+function autoResize(textarea) {
+    textarea.style.height = 'auto'; // Reset chiều cao
+    textarea.style.height = textarea.scrollHeight + 'px'; // Set chiều cao bằng nội dung
+}
+
+// 3. Hàm Thêm dòng mới
+function addOrderRow() {
+    const tbody = document.getElementById('order-table-body');
+    const filterSelect = document.getElementById('order-month-filter');
+    
+    // 1. Lấy ngày thực tế hiện tại
+    const now = new Date();
+    // Tạo chuỗi tên tháng chuẩn: "Tháng 1 2026" (hoặc "Tháng 12 2025")
+    // Lưu ý: getMonth() trả về từ 0-11 nên phải +1
+    const currentMonthName = `Tháng ${now.getMonth() + 1} ${now.getFullYear()}`;
+    
+    let targetSheetName = "";
+
+    // 2. Logic chọn tên tháng cho dòng mới
+    if (filterSelect.value !== 'all') {
+        // Nếu đang lọc riêng 1 tháng (VD đang xem lại tháng cũ) -> Thêm vào tháng đó
+        targetSheetName = filterSelect.value;
+    } else {
+        // Nếu đang xem "Tất cả" -> Ưu tiên dùng THÁNG HIỆN TẠI (Realtime)
+        // Bất kể trong Sheet đã có hay chưa.
+        targetSheetName = currentMonthName;
+    }
+
+    // 3. Tạo dòng mới
+    createOrderRowHTML(tbody, { sheetName: targetSheetName });
+    
+    // 4. Scroll xuống cuối cùng để thấy dòng mới
+    tbody.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function pingDiscord(btn) {
+    const row = btn.closest('tr');
+    
+    // Hiệu ứng loading
+    const originalIcon = btn.innerHTML;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+    btn.disabled = true;
+
+    // Lấy dữ liệu dòng đó
+    const data = {
+        sheetName: row.querySelector('td:nth-child(2)').innerText.trim(),
+        priority: row.querySelector('select:nth-of-type(1)').value,
+        req: row.querySelectorAll('select')[1].value,
+        exec: row.querySelectorAll('select')[2].value,
+        dead: row.querySelector('input[type="date"]').value,
+        // Lấy nội dung (Textarea đầu tiên)
+        content: row.querySelectorAll('textarea')[0].value,
+        // Lấy Note (Textarea trong wrapper)
+        note: row.querySelectorAll('textarea')[1].value
+    };
+
+    try {
+        // Gửi lên Server với action = send_discord
+        const response = await fetch(ORDER_API_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ 
+                action: "send_discord", // Cờ hiệu để Server biết cần làm gì
+                data: data 
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            alert("✅ Đã gửi thông báo lên Discord!");
+        } else {
+            alert("❌ Lỗi: " + result.message);
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert("Lỗi kết nối!");
+    } finally {
+        btn.innerHTML = originalIcon;
+        btn.disabled = false;
+    }
+}
+
+// 4. Hàm Xóa dòng
+function deleteOrderRow(btn) {
+    if(confirm('Bạn có chắc muốn xóa dòng này?')) {
+        const row = btn.closest('tr');
+        row.remove();
+    }
+}
+
+// 5. Hàm đổi màu Priority khi chọn dropdown
+function changePrioColor(select) {
+    select.className = 'table-select'; // Reset class
+    if(select.value === 'Low') select.classList.add('prio-low');
+    if(select.value === 'Medium') select.classList.add('prio-medium');
+    if(select.value === 'High') select.classList.add('prio-high');
+}
+
+// 6. Hàm Lưu (Hiện tại chỉ log ra console, sau này nối API)
+async function saveOrderData() {
+    const btnSave = document.querySelector('.action-buttons button'); // Nút lưu
+    const originalText = btnSave.innerHTML;
+    
+    // 1. Hiệu ứng Loading
+    btnSave.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Đang lưu...`;
+    btnSave.disabled = true;
+
+    try {
+        // 2. Quét dữ liệu từ bảng HTML
+        const rows = document.querySelectorAll('#order-table-body tr');
+        let dataToSend = [];
+        let hasError = false;
+
+        rows.forEach(row => {
+            // Lấy thông tin từ các ô input/select
+            const done = row.querySelector('.table-checkbox').checked;
+            
+            // Lấy Sheet Name (Tên tháng) từ cột thứ 2
+            // Quan trọng: textContent sẽ lấy "Tháng 12 2025"
+            const sheetName = row.querySelector('td:nth-child(2)').innerText.trim(); 
+
+            const priority = row.querySelector('select:nth-of-type(1)').value;
+            // Requester & Executer (Lưu ý thứ tự select trong HTML)
+            const req = row.querySelectorAll('select')[1].value;
+            const exec = row.querySelectorAll('select')[2].value;
+            
+            const dead = row.querySelector('input[type="date"]').value;
+            
+            // Lấy nội dung (Textarea thứ nhất)
+            const content = row.querySelectorAll('textarea')[0].value;
+            
+            // Lấy Note/Link (Textarea thứ hai - nằm trong wrapper)
+            const note = row.querySelectorAll('textarea')[1].value;
+
+            // Kiểm tra dữ liệu cơ bản (VD: Phải có tên sheet)
+            if (!sheetName) {
+                hasError = true;
+                return;
+            }
+
+            dataToSend.push({
+                sheetName: sheetName,
+                done: done,
+                priority: priority,
+                req: req,
+                exec: exec,
+                dead: dead,
+                content: content,
+                note: note
+            });
+        });
+
+        if (hasError) {
+            alert("Lỗi: Có dòng thiếu thông tin Tháng/Sheet. Vui lòng kiểm tra lại.");
+            resetButton();
+            return;
+        }
+
+        if (dataToSend.length === 0) {
+            alert("Không có dữ liệu để lưu!");
+            resetButton();
+            return;
+        }
+
+        console.log("Dữ liệu chuẩn bị gửi:", dataToSend);
+
+        // 3. Gửi POST lên Google Apps Script
+        // Lưu ý: Dùng no-cors hoặc text/plain để tránh lỗi Preflight của Google
+       const response = await fetch(ORDER_API_URL, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8", 
+            },
+            body: JSON.stringify({ data: dataToSend }) // Vẫn gửi chuỗi JSON bình thường
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert("✅ Đã lưu thành công!");
+            // Load lại bảng để cập nhật dữ liệu mới nhất (nếu cần)
+            // loadOrderTable(); 
+        } else {
+            alert("❌ Lỗi Server: " + result.message);
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert("Lỗi kết nối: " + e.message);
+    } finally {
+        resetButton();
+    }
+
+    function resetButton() {
+        btnSave.innerHTML = originalText;
+        btnSave.disabled = false;
+    }
+}
+
+async function loadOrderTable() {
+    const tbody = document.getElementById('order-table-body');
+    const filterSelect = document.getElementById('order-month-filter');
+
+    // Reset bảng
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu Order...</td></tr>`;
+
+    try {
+        console.log("Đang gọi API Order riêng biệt...");
+        
+        // === SỬA Ở ĐÂY: DÙNG URL MỚI VÀ KHÔNG CẦN ?action=... NỮA ===
+        const response = await fetch(ORDER_API_URL); 
+        const data = await response.json();
+
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="9" style="color:red; text-align:center;">${data.error}</td></tr>`;
+            return;
+        }
+
+        // Lưu Cache
+        cachedOrderData = data;
+
+        // --- XỬ LÝ DROPDOWN CHỌN THÁNG ---
+        const uniqueMonths = [...new Set(data.map(item => item.sheetName))];
+        // Sắp xếp tháng giảm dần (Mới nhất lên đầu)
+        uniqueMonths.sort((a, b) => {
+             // Logic sort đơn giản: so sánh chuỗi (Năm 2026 sẽ > 2025)
+             return b.localeCompare(a); 
+        });
+
+        // Chỉ tạo lại Dropdown nếu chưa có (để đỡ bị reset khi đang chọn)
+        if (filterSelect.options.length <= 1) {
+            uniqueMonths.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.innerText = name;
+                filterSelect.appendChild(option);
+            });
+            // Mặc định chọn tháng mới nhất
+            if (uniqueMonths.length > 0) filterSelect.value = uniqueMonths[0];
+        }
+
+        // Vẽ bảng
+        renderOrderTable();
+
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = `<tr><td colspan="9" style="color:red; text-align:center;">Lỗi kết nối tới Script Order!</td></tr>`;
+    }
+}
+
+// 2. Hàm Vẽ Bảng (Có lọc)
+function renderOrderTable() {
+    const tbody = document.getElementById('order-table-body');
+    const filterValue = document.getElementById('order-month-filter').value;
+
+    tbody.innerHTML = '';
+
+    // Lọc dữ liệu
+    let displayData = cachedOrderData;
+    if (filterValue !== 'all') {
+        displayData = cachedOrderData.filter(item => item.sheetName === filterValue);
+    }
+
+    if (displayData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 20px; color:#999;">Không có dữ liệu cho tháng này.</td></tr>`;
+        return;
+    }
+
+    // Duyệt và vẽ từng dòng
+    displayData.forEach((row, index) => {
+        createOrderRowHTML(tbody, row);
+    });
+}
+
 // 3. Hàm cập nhật Avatar & Tên trên Header (Dashboard)
 function updateDashboardUser(name, avatarUrl) {
     const userInfoDiv = document.querySelector('.user-info');
@@ -568,6 +1024,136 @@ function updateDashboardUser(name, avatarUrl) {
             </div>
         `;
     }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderHeroTrending(); // Render list demo ngay
+    fetchRealGamesForHero(); // Gọi API ngầm
+});
+let globalRealGames = [];
+let heroSlideshowInterval;
+
+async function fetchRealGamesForHero() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const data = await response.json();
+
+        if (data && !data.error && data.length > 0) {
+            renderHeroTrending(data); // Cập nhật lại khi có data thật
+        }
+    } catch (e) {
+        console.error("Lỗi lấy data Landing Page:", e);
+    }
+}
+
+function renderHeroTrending(customList = null) {
+    const container = document.getElementById('hero-trending-list');
+    if (!container) return;
+
+    // Dữ liệu mẫu
+    let displayList = [
+        { name: "Six Battle Arena" }, { name: "Dragon Legend" }, 
+        { name: "Space War Z" }, { name: "Racing Storm" }
+    ];
+
+    if (customList && customList.length > 0) displayList = customList.filter(g => g.name);
+
+    // Random lấy 3 game
+    const shuffled = [...displayList].sort(() => 0.5 - Math.random());
+    const top3 = shuffled.slice(0, 3);
+
+    container.innerHTML = '';
+    
+    top3.forEach((gameData, index) => {
+        const downloads = (Math.random() * 2 + 0.5).toFixed(1); 
+        
+        // Tạo Rating giả lập (4.5 -> 5.0)
+        const rating = (Math.random() * 0.5 + 4.5).toFixed(1);
+
+        // Tạo Link ảnh
+        let iconSrc = "";
+        if (gameData.icon && gameData.icon.toString().startsWith('http')) {
+            iconSrc = gameData.icon;
+        } else {
+            const randomColor = Math.floor(Math.random()*16777215).toString(16);
+            iconSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameData.name)}&background=${randomColor}&color=fff&size=512&bold=true`;
+        }
+
+        // --- QUAN TRỌNG: Lưu dữ liệu vào data attributes ---
+        const html = `
+            <div class="game-stat-item" 
+                 data-img="${iconSrc}" 
+                 data-name="${gameData.name}" 
+                 data-rating="${rating}">
+                 
+                <img src="${iconSrc}" alt="${gameData.name}" class="gs-icon-img">
+                <div class="gs-info">
+                    <h4>${gameData.name}</h4>
+                    <p class="downloads">
+                        <i class="fas fa-download"></i> ${downloads} Triệu lượt tải
+                    </p>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+
+    startSlideshow();
+}
+
+function startSlideshow() {
+    const items = document.querySelectorAll('.game-stat-item');
+    
+    // Lấy các element mới trong điện thoại
+    const glassCard = document.getElementById('phone-app-display');
+    const bgFull = document.getElementById('p-bg-full'); // Ảnh nền to
+    
+    const pIcon = document.getElementById('p-icon');
+    const pName = document.getElementById('p-name');
+    const pScore = document.getElementById('p-score');
+
+    if (items.length === 0 || !glassCard) return;
+
+    if (heroSlideshowInterval) clearInterval(heroSlideshowInterval);
+
+    let currentIndex = 0;
+
+    const runSlide = () => {
+        // Active item bên trái
+        items.forEach(el => el.classList.remove('active'));
+        const activeItem = items[currentIndex];
+        activeItem.classList.add('active');
+
+        // Lấy dữ liệu
+        const img = activeItem.getAttribute('data-img');
+        const name = activeItem.getAttribute('data-name');
+        const rating = activeItem.getAttribute('data-rating');
+
+        // 1. Ẩn nội dung cũ (Fade Out)
+        glassCard.classList.add('fade-out');
+        bgFull.style.opacity = 0; // Mờ ảnh nền
+
+        // 2. Đổi dữ liệu sau 0.4s
+        setTimeout(() => {
+            pIcon.src = img;
+            pName.innerText = name;
+            pScore.innerText = rating;
+            
+            // Cập nhật ảnh nền lớn (Dùng chính icon game làm nền)
+            bgFull.src = img; 
+
+            // 3. Hiện lại (Fade In)
+            glassCard.classList.remove('fade-out');
+            bgFull.style.opacity = 1;
+        }, 400);
+
+        currentIndex++;
+        if (currentIndex >= items.length) currentIndex = 0;
+    };
+
+    runSlide();
+    heroSlideshowInterval = setInterval(runSlide, 4000); 
 }
 
 // 4. Sửa lại hàm kiểm tra lúc Load trang (để nhớ Avatar cũ)

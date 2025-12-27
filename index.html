@@ -36,26 +36,9 @@
 
                 <div class="trending-games">
                     <h3><i class="fas fa-fire"></i> Top Game Thịnh Hành</h3>
-                    <div class="game-stat-item">
-                        <div class="gs-icon g1"><i class="fas fa-dragon"></i></div>
-                        <div class="gs-info">
-                            <h4>Chiến Binh Rồng Mobile</h4>
-                            <p class="downloads"><i class="fas fa-download"></i> 1.2 Triệu lượt tải</p>
-                        </div>
-                    </div>
-                    <div class="game-stat-item">
-                        <div class="gs-icon g2"><i class="fas fa-car-side"></i></div>
-                        <div class="gs-info">
-                            <h4>Tốc Độ Ánh Sáng VR</h4>
-                            <p class="downloads"><i class="fas fa-download"></i> 850 Nghìn lượt tải</p>
-                        </div>
-                    </div>
-                    <div class="game-stat-item">
-                        <div class="gs-icon g3"><i class="fas fa-ghost"></i></div>
-                        <div class="gs-info">
-                            <h4>Thợ Săn Bóng Đêm</h4>
-                            <p class="downloads"><i class="fas fa-download"></i> 500 Nghìn lượt tải</p>
-                        </div>
+                    
+                    <div id="hero-trending-list">
+                        <p style="color: #666; font-style: italic;">Đang cập nhật xu hướng...</p>
                     </div>
                 </div>
             </div>
@@ -64,7 +47,32 @@
                 <div class="phone-mockup">
                     <div class="phone-notch"></div>
                     <div class="phone-screen">
-                        <img src="https://i.pinimg.com/564x/9b/30/37/9b30377604d6e69733a301fe71610763.jpg" alt="Game Screen Screenshot">
+                        <img id="p-bg-full" src="" alt="Game Background" class="phone-bg-image">
+                        
+                        <div class="phone-bg-overlay"></div>
+
+                        <div id="phone-app-display" class="phone-glass-card">
+                            
+                            <div class="p-icon-container">
+                                <img id="p-icon" src="" alt="Icon">
+                            </div>
+
+                            <div class="phone-info">
+                                <h3 id="p-name">Loading...</h3>
+                                <div class="p-rating">
+                                    <span id="p-score">4.8</span> 
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <p id="p-developer">Six Studio Inc.</p>
+                                <p class="p-meta-text">500k+ Tải xuống</p>
+                            </div>
+
+                            <button class="btn-install-gradient">CÀI ĐẶT</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -286,7 +294,46 @@
             </div>
 
             <div id="tab-order" class="tab-content hidden">
-                 <h2>Order</h2>
+                <div class="tab-header-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display:flex; align-items:center; gap: 15px;">
+                        <h2 style="color: #333; margin: 0;">Order Tài Nguyên</h2>
+                        
+                        <select id="order-month-filter" onchange="renderOrderTable()" style="padding: 8px 15px; border-radius: 20px; border: 1px solid var(--primary-orange); color: var(--primary-orange); font-weight: bold; outline: none; cursor: pointer;">
+                            <option value="all">Tất cả các tháng</option>
+                            </select>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-small" onclick="saveOrderData()" style="background: var(--primary-orange); color: white; border:none; margin-right: 10px; font-weight: bold;">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                        <button class="btn-add-new" onclick="addOrderRow()" style="background: white; color: var(--primary-orange); border: 2px solid var(--primary-orange);">
+                            <i class="fas fa-plus"></i> Thêm
+                        </button>
+                    </div>
+                </div>
+
+                <div class="order-table-container">
+                    <table class="data-table order-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 50px;">Done</th>
+                            <th style="width: 100px;">Tháng</th>
+                            <th style="width: 130px;">Priority</th>
+                            <th style="width: 140px;">Requester</th>
+                            <th style="width: 140px;">Executer</th>
+                            <th style="width: 150px;">Deadline</th>
+                            <th>Nội dung Order</th>
+                            <th style="width: 220px;">Link/Ghi chú</th>
+                            
+                            <th class="text-center" style="width: 60px;">Ping</th>
+                            
+                            <th class="text-center" style="width: 60px;">Xóa</th>
+                        </tr>
+                    </thead>
+                        <tbody id="order-table-body"></tbody>
+                    </table>
+                </div>
             </div>
 
         </main>
