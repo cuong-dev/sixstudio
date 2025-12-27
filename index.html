@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Six Game Studio - Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+    <div id="landing-page">
+        <header>
+            <div class="logo">
+                <img src="logo.png" alt="Six Game Studio Logo" class="logo-img">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Trang chủ</a></li>
+                    <li><a href="#">Trò chơi</a></li>
+                    <li><a href="#">Tuyển dụng</a></li>
+                </ul>
+            </nav>
+            <a href="#" class="btn-contact" onclick="toggleLoginModal()">Đăng Nhập</a>
+        </header>
+
+        <section class="hero">
+        <div class="hero-container">
+            <div class="hero-left">
+                <div class="hero-text">
+                    <h1>Sáng tạo thế giới ảo <br><span>Six Game Studio</span></h1>
+                    <p>Chúng tôi tạo ra những trải nghiệm chơi game đỉnh cao, kết nối hàng triệu người chơi trên toàn thế giới.</p>
+                    <button class="btn-hero" onclick="toggleLoginModal()">Vào hệ thống</button>
+                </div>
+
+                <div class="trending-games">
+                    <h3><i class="fas fa-fire"></i> Top Game Thịnh Hành</h3>
+                    <div class="game-stat-item">
+                        <div class="gs-icon g1"><i class="fas fa-dragon"></i></div>
+                        <div class="gs-info">
+                            <h4>Chiến Binh Rồng Mobile</h4>
+                            <p class="downloads"><i class="fas fa-download"></i> 1.2 Triệu lượt tải</p>
+                        </div>
+                    </div>
+                    <div class="game-stat-item">
+                        <div class="gs-icon g2"><i class="fas fa-car-side"></i></div>
+                        <div class="gs-info">
+                            <h4>Tốc Độ Ánh Sáng VR</h4>
+                            <p class="downloads"><i class="fas fa-download"></i> 850 Nghìn lượt tải</p>
+                        </div>
+                    </div>
+                    <div class="game-stat-item">
+                        <div class="gs-icon g3"><i class="fas fa-ghost"></i></div>
+                        <div class="gs-info">
+                            <h4>Thợ Săn Bóng Đêm</h4>
+                            <p class="downloads"><i class="fas fa-download"></i> 500 Nghìn lượt tải</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-right">
+                <div class="phone-mockup">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <img src="https://i.pinimg.com/564x/9b/30/37/9b30377604d6e69733a301fe71610763.jpg" alt="Game Screen Screenshot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <section class="section-games">
+            <h2 class="section-title"><span>Dự Án Công Khai</span></h2>
+            <div class="game-grid">
+                <div class="game-card">
+                    <div class="game-thumb g1"><i class="fas fa-dragon"></i></div>
+                    <div class="game-info">
+                        <h3>Chiến Binh Rồng</h3>
+                        <span class="game-tag">RPG / Action</span>
+                    </div>
+                </div>
+                <div class="game-card">
+                    <div class="game-thumb g2"><i class="fas fa-car-side"></i></div>
+                    <div class="game-info">
+                        <h3>Tốc Độ Ánh Sáng</h3>
+                        <span class="game-tag">Racing / VR</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>© 2024 Six Game Studio. Public Page.</p>
+        </footer>
+    </div>
+
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleLoginModal()">&times;</span>
+            <h2>Six Studio ID</h2>
+            <p class="subtitle">Đăng nhập để truy cập Dashboard</p>
+
+            <form id="loginForm" onsubmit="xuLyDangNhap(event)" style="margin-bottom: 20px;">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="User: admin">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Pass: 123456">
+                </div>
+                <button type="submit" class="btn-login-submit">Đăng nhập thường</button>
+            </form>
+
+            <div style="position: relative; margin: 20px 0;">
+                <hr style="border: 0; border-top: 1px solid #eee;">
+                <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #999; font-size: 12px;">HOẶC</span>
+            </div>
+
+            <div style="display: flex; justify-content: center;">
+                <div id="g_id_onload"
+                    data-client_id="451691653800-2fs579b3pm4hph80iri41dd0hafeaq4g.apps.googleusercontent.com" 
+                    data-callback="handleCredentialResponse"
+                    data-auto_select="false"
+                    data-itp_support="true">
+                </div>
+                <div class="g_id_signin"
+                    data-type="standard"
+                    data-shape="rectangular"
+                    data-theme="outline"
+                    data-text="signin_with"
+                    data-size="large"
+                    data-logo_alignment="left">
+                </div>
+            </div>
+            
+            <p id="error-msg" class="error-text hidden">Email này không có quyền truy cập!</p>
+        </div>
+    </div>
+
+<div id="dashboard-page" class="hidden">
+    <header class="dash-header">
+        <div class="logo">
+            <img src="logo.png" alt="Logo" class="logo-img">
+        </div>
+        <div class="user-info">
+            <span>Xin chào, <b>Admin</b></span>
+            <button class="btn-logout" onclick="dangXuat()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+        </div>
+    </header>
+
+    <div class="dash-container">
+        <aside class="sidebar">
+            <ul>
+                <li onclick="switchTab('tab-games')" class="menu-item active" id="menu-games">
+                    <i class="fas fa-gamepad"></i> Quản lý Game
+                </li>
+                <li onclick="switchTab('tab-revenue')" class="menu-item" id="menu-revenue">
+                    <i class="fas fa-chart-line"></i> Doanh thu
+                </li>
+                <li onclick="switchTab('tab-plan')" class="menu-item" id="menu-plan">
+                    <i class="fas fa-calendar-alt"></i> Kế hoạch
+                </li>
+                <li onclick="switchTab('tab-order')" class="menu-item" id="menu-order">
+                    <i class="fas fa-box-open"></i> Order tài nguyên
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            
+            <div id="tab-games" class="tab-content">
+                <div class="tab-header-row" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="color: #333; margin: 0;">Kho Ứng Dụng</h2>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">Dữ liệu được đồng bộ từ Google Sheet</p>
+                    </div>
+                    
+                    <button class="btn-small" onclick="loadGamesFromSheet()" style="padding: 10px 20px; background: var(--bg-light); border: 1px solid #ddd; font-weight: 600;">
+                        <i class="fas fa-sync-alt" style="color: var(--primary-orange);"></i> Làm mới dữ liệu
+                    </button>
+                </div>
+
+                <div id="game-gallery-container" class="game-gallery">
+                    <p style="color:#888; text-align:center; margin-top: 20px;">Đang kết nối server...</p>
+                </div>
+            </div>
+            
+            <div id="tab-revenue" class="tab-content hidden">
+                <div class="tab-header-row" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <h2 style="color: #333; margin: 0;">Doanh Thu Tổng Quan</h2>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-detail" onclick="toggleDailyModal()">
+                            <i class="fas fa-calendar-day"></i> Chi tiết ngày hôm nay
+                        </button>
+
+                        <div class="date-filter">
+                            <select id="revenue-year-select" onchange="loadRevenueData()" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; outline: none; font-weight: 600; color: var(--primary-orange); cursor: pointer;">
+                                <option value="2024" selected>Năm 2024</option>
+                                <option value="2025">Năm 2025</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="revenue-loader" style="text-align: center; padding: 50px; display: none;">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; color: var(--primary-orange);"></i>
+                    <p style="color: #666; margin-top: 15px;">Đang tải dữ liệu...</p>
+                </div>
+
+                <div id="revenue-content" class="fade-in">
+                    <div class="revenue-summary-grid">
+                        <div class="stat-card revenue-card main-stat">
+                            <div class="icon-box green"><i class="fas fa-wallet"></i></div>
+                            <div class="stat-info"><p>Tổng Doanh Thu</p><h3 id="total-revenue">$0</h3></div>
+                        </div>
+                        <div class="stat-card revenue-card">
+                            <div class="icon-box orange"><i class="fas fa-flag-checkered"></i></div>
+                            <div class="stat-info"><p>Mục Tiêu Tiếp</p><h3 id="next-milestone">$0</h3><small id="needed-amount">Loading...</small></div>
+                        </div>
+                        <div class="stat-card revenue-card">
+                            <div class="icon-box blue"><i class="fas fa-tachometer-alt"></i></div>
+                            <div class="stat-info"><p>Tốc Độ TB</p><h3 id="avg-daily">$0 / ngày</h3><small id="days-to-goal">Loading...</small></div>
+                        </div>
+                    </div>
+
+                    <div class="revenue-layout">
+                        <div class="revenue-table-container">
+                            <table class="data-table">
+                                <thead><tr><th>Tháng</th><th>Thực Đạt</th><th>Mục Tiêu</th><th class="text-center">Trạng thái</th></tr></thead>
+                                <tbody id="revenue-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="chart-section">
+                            <h4>Biểu Đồ Tăng Trưởng</h4>
+                            <div id="revenue-chart-bars" class="css-bar-chart"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="daily-modal" class="modal-overlay hidden" style="z-index: 3000;">
+                    <div class="modal-content" style="width: 95%; height: 90vh; max-width: 1200px; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+                        
+                        <div style="padding: 20px; background: #fff; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2 style="margin: 0; font-size: 1.5rem; color: #333;">Chi Tiết Doanh Thu</h2>
+                                <p style="color: #666; margin: 5px 0 0 0;">
+                                    Dữ liệu chốt ngày: <b id="current-date-display" style="color: var(--primary-orange);">...</b>
+                                </p>
+                            </div>
+                            
+                            <div style="text-align: right;">
+                                <span style="display: block; font-size: 0.9rem; color: #888; text-transform: uppercase; font-weight: 600;">Tổng Lợi Nhuận (Profit)</span>
+                                <div id="daily-total-profit" style="font-size: 2.2rem; font-weight: 800; color: #27ae60;">
+                                    ---
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; overflow-y: auto; padding: 0;">
+                            <table class="data-table" style="width: 100%; margin: 0; border: none;">
+                                <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                    <tr style="background: #f8f9fa; text-transform: uppercase; font-size: 0.85rem;">
+                                        <th style="padding: 15px 20px;">Game (Dự án)</th>
+                                        <th style="text-align: right;">Doanh thu</th>
+                                        <th style="text-align: right;">Chi phí (Cost)</th> <th style="text-align: right; padding-right: 30px;">Lợi nhuận</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="daily-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div style="padding: 15px; background: #f1f1f1; text-align: right; border-top: 1px solid #ddd;">
+                            <button onclick="toggleDailyModal()" style="padding: 10px 30px; background: #555; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                ĐÓNG CỬA SỔ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tab-plan" class="tab-content hidden">
+                 <h2>Kế hoạch</h2>
+            </div>
+
+            <div id="tab-order" class="tab-content hidden">
+                 <h2>Order</h2>
+            </div>
+
+        </main>
+    </div>
+</div>
+<div id="add-game-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 500px;"> <span class="close-btn" onclick="toggleAddGameModal()">&times;</span>
+        <h2>Thêm Dự Án Mới</h2>
+        <p class="subtitle">Nhập thông tin game để đưa lên hệ thống</p>
+        
+        <form onsubmit="luuGameMoi(event)">
+            <div class="input-group">
+                <label>Tên Game</label>
+                <input type="text" id="new-game-name" placeholder="Ví dụ: Gunny Mobile" required>
+            </div>
+            <div class="input-group">
+                <label>Thể loại & Phiên bản</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-game-cat" placeholder="VD: RPG" required>
+                    <input type="text" id="new-game-ver" placeholder="VD: v1.0" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Trạng thái</label>
+                <select id="new-game-status" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="Online">Online (Hoạt động)</option>
+                    <option value="Bảo trì">Bảo trì</option>
+                    <option value="Dev">Đang phát triển</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-login-submit">Lưu vào danh sách</button>
+        </form>
+    </div>
+</div>
+    <script src="script.js"></script>
+</body>
+</html>
